@@ -11,17 +11,18 @@
 
 #define ROW_BYTES ((MATRIX_WIDTH/8)*2)  // /8 because bitmask, *2 because red & green
 
-static const unsigned char vhs[] PROGMEM = {
-  0x11, 0x78,  // row 1 red bitmask
-  0x11, 0x04,  // row 1 green bitmask
-  0x11, 0x04,  // row 2 red bitmask
-  0x11, 0x38,  // row 2 green bitmask
-  0x11, 0x40, 0xa4, 0x00, 0x43, 0xc0, 0x00, 0x02,  // row 3, 4
-  0x07, 0xa2, 0x00, 0x62, 0x00, 0x6e, 0x03, 0xb2,  // row 5, 6
-  0x04, 0x22, 0x04, 0x22, 0x03, 0xe0, 0x00, 0x00   // row 7, 8
-};
+//static const unsigned char vhs[] PROGMEM = {
+static const unsigned char vhs[] = {
+0x11, 0xf0, 0x20, 0xf4,
+0x11, 0x08, 0x20, 0x0c,
+0x11, 0x08, 0x20, 0x0c,
+0x11, 0x70, 0xe0, 0x77,
+0x11, 0x80, 0x20, 0x84,
+0x0a, 0x80, 0x20, 0x84,
+0x04, 0x78, 0x20, 0x7c,
+0x00, 0x00, 0x00, 0x00 };
 
-static volatile char tick;      // Timer tick, indicating when to update the display
+static volatile unsigned char tick;      // Timer tick, indicating when to update the display
 
 static void banner_callback(void)
 {
@@ -39,8 +40,16 @@ static void wipe(unsigned char stage)
   unsigned char index, mask;
   matrix_color_t color;
 
+  unsigned char loop_count = 0;
+
   for (tick = 0, last_tick = 255; tick < MATRIX_WIDTH;)
   {
+    if (++loop_count >= 255 )
+    {
+      matrix_timer_callback();
+      loop_count = 0;
+    }
+
     if (last_tick == tick)
       continue;
 
@@ -57,7 +66,7 @@ static void wipe(unsigned char stage)
 
     for (y=0; y<MATRIX_HEIGHT; ++y)
     {
-      index = y * ROW_BYTES + byte;
+      index = (MATRIX_HEIGHT - 1 - y) * ROW_BYTES + byte;
 
       if (stage == 3)
       {
@@ -66,16 +75,33 @@ static void wipe(unsigned char stage)
       }
       else
       {
-        color.red = (pgm_read_byte(vhs[index]) & mask) ? 255 : 0;
+//        color.red = (pgm_read_byte(vhs[index]) & mask) ? 255 : 0;
+        color.red = (vhs[index] & mask) ? 255 : 0;
 
         index += ROW_BYTES / 2;  // move from red to green data
 
-        color.green = (pgm_read_byte(vhs[index]) & mask) ? 255 : 0;
+//        color.green = (pgm_read_byte(vhs[index]) & mask) ? 255 : 0;
+        color.green = (vhs[index] & mask) ? 255 : 0;
 
         if (stage == 2)
         {
-          color.red   = 255 - color.red;
-          color.green = 255 - color.green;
+          // time to cycle some colors:
+
+          if (color.red)
+          {
+            if (color.green)
+              color.red = 0;    // yellow -> green
+            else
+              color.green = 255;  // red -> yellow
+          }
+          else
+          {
+            if (color.green)
+            {
+              color.red = 255;    // green -> red
+              color.green = 0;
+            }
+          }
         }
       }
 
@@ -93,10 +119,14 @@ void banner_run(void)
 
   matrix_clear_all();
 
-  timer = timer_set_callback(2, TIMER_REPEAT, &banner_callback);
+  timer = timer_set_callback(4, TIMER_REPEAT, &banner_callback);
 
-  wipe(1);  // left to right, normal colours
-  wipe(2);  // right to left, inverted colours
+  while (1)
+  {
+    wipe(1);  // left to right, normal colours
+    wipe(2);  // right to left, inverted colours
+  }
+
   wipe(3);  // left to right, clearing display
 
   timer_clear_callback(timer);

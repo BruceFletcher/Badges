@@ -9,37 +9,28 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "timer.h"
+#include "matrix.h"
 #include "uart.h"
 #include "banner.h"
-
-
-/**
- * Simple heartbeat indicator.
- */
-void toggle_led(void)
-{
-  PORTB ^= (1 << DDB5);   // toggle that LED, toggle it!
-}
+#include "breakout.h"
 
 
 int main(void)
 {
-  timer_init();
-  uart_init();
+  CLKPR = (1<<CLKPCE);
+  CLKPR = 0;  // no prescaling
 
-  PORTB &= ~(1 << PORTB5);  // set B5 lo
-  DDRB |= (1 << DDB5);      // and make it an output
+  timer_init();
+  matrix_init();
 
   sei();  // enable interrupts
 
   banner_run();
 
-  toggle_led();
+/*
+  breakout_run();
+*/
 
-  timer_set_callback(100, 1, &toggle_led);
-
-  while (1)
-  {
-  }
+  while (1);
 }
 

@@ -5,7 +5,7 @@
  * Licence: http://creativecommons.org/licenses/by/3.0/
  */
 
-#define UART_BAUDRATE      57600
+#define UART_BAUDRATE      19200
 
 /**
  * Call to initialize the UART at the start of main()
