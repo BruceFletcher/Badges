@@ -7,6 +7,7 @@
 
 #include <avr/pgmspace.h>
 #include "timer.h"
+#include "buttons.h"
 #include "matrix.h"
 
 #define ROW_BYTES ((MATRIX_WIDTH/8)*2)  // /8 because bitmask, *2 because red & green
@@ -40,16 +41,8 @@ static void wipe(unsigned char stage)
   unsigned char index, mask;
   matrix_color_t color;
 
-  unsigned char loop_count = 0;
-
   for (tick = 0, last_tick = 255; tick < MATRIX_WIDTH;)
   {
-    if (++loop_count >= 255 )
-    {
-      matrix_timer_callback();
-      loop_count = 0;
-    }
-
     if (last_tick == tick)
       continue;
 
@@ -121,13 +114,20 @@ void banner_run(void)
 
   timer = timer_set_callback(4, TIMER_REPEAT, &banner_callback);
 
+  matrix_start_scanning();
+
   while (1)
   {
     wipe(1);  // left to right, normal colours
     wipe(2);  // right to left, inverted colours
+
+    if (button_get_aux_state())
+      break;
   }
 
   wipe(3);  // left to right, clearing display
+
+  matrix_stop_scanning();
 
   timer_clear_callback(timer);
 }

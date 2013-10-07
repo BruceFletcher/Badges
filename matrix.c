@@ -7,17 +7,21 @@
 
 #include <string.h>
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include "timer.h"
 #include "matrix.h"
 
 
-matrix_color_t matrix_buffer[MATRIX_WIDTH][MATRIX_HEIGHT];
+#define SCAN_PERIOD  100   // Adjust to minimize flicker, scanning light polution
 
-static unsigned char timer;
+
+matrix_color_t matrix_buffer[MATRIX_WIDTH][MATRIX_HEIGHT];
 
 
 void matrix_init(void)
 {
+  TCCR2B |= (1 << CS22);   // /64 prescale on timer 2, used for scanning display
+
   DDRB |= (1 << DDB0)      // column select high bits
        |  (1 << DDB1)
        |  (1 << DDB2);
@@ -26,12 +30,14 @@ void matrix_init(void)
        |  (1 << DDD5);     // row clock
 }
 
-void matrix_timer_callback(void)
+ISR(TIMER2_OVF_vect)
 {
   static unsigned char column;
 
   unsigned char row, scan_column;
   matrix_color_t *c;
+
+  TCNT2 = 255 - SCAN_PERIOD + TCNT2;   // Reset timer scanning period
 
   ++column;
   column %= MATRIX_WIDTH;
@@ -68,12 +74,13 @@ void matrix_timer_callback(void)
 
 void matrix_start_scanning(void)
 {
-  timer = timer_set_callback(1, 1, &matrix_timer_callback);
+  TCNT2 = 255 - SCAN_PERIOD;   // Initial timer overflow value
+  TIMSK2 |= (1 << TOIE2);      // Enable timer overflow interrupt
 }
 
 void matrix_stop_scanning(void)
 {
-  timer_clear_callback(timer);
+  TIMSK2 &= ~(1 << TOIE2);  // Disable timer overflow interrupt
 }
 
 void matrix_clear_all(void)

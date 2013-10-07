@@ -10,7 +10,7 @@ DEVICE     = atmega168p
 CLOCK      = 8000000
 #CLOCK      = 1000000
 PROGRAMMER = -c avrispmkII -P usb
-OBJECTS    = main.o timer.o uart.o matrix.o banner.o breakout.o
+OBJECTS    = main.o timer.o uart.o matrix.o buttons.o banner.o breakout.o
 #FUSES      = -U lfuse:w:0xd6:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
 FUSES      = -U lfuse:w:0x62:m -U hfuse:w:0xdf:m -U efuse:w:0x01:m
 
@@ -18,7 +18,7 @@ FUSES      = -U lfuse:w:0x62:m -U hfuse:w:0xdf:m -U efuse:w:0x01:m
 # Stuff you probably don't want to mess with:
 
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
-CC      = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
+CC      = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) -fshort-enums
 CPP     = avr-g++ -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
 
 # symbolic targets:

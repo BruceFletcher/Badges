@@ -10,27 +10,28 @@
 #include <avr/interrupt.h>
 #include "timer.h"
 #include "matrix.h"
+#include "buttons.h"
 #include "uart.h"
 #include "banner.h"
 #include "breakout.h"
 
 
-int main(void)
+int main()
 {
   CLKPR = (1<<CLKPCE);
   CLKPR = 0;  // no prescaling
 
   timer_init();
   matrix_init();
+  buttons_init();
 
   sei();  // enable interrupts
 
-  banner_run();
+  while (1)
+  {
+    banner_run();
 
-/*
-  breakout_run();
-*/
-
-  while (1);
+    breakout_run();
+  }
 }
 
