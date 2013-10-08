@@ -5,6 +5,7 @@
  * Licence: http://creativecommons.org/licenses/by/3.0/
  */
 
+#include <stdint.h>
 
 typedef enum
 {
@@ -21,5 +22,7 @@ void buttons_init();
 
 button_hat_state_t button_get_hat_state(void);
 
-inline char button_get_aux_state(void);
+char button_get_aux_state(void);
+
+void button_debounce_aux(uint8_t period);
 

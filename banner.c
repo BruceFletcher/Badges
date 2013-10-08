@@ -12,8 +12,8 @@
 
 #define ROW_BYTES ((MATRIX_WIDTH/8)*2)  // /8 because bitmask, *2 because red & green
 
-//static const unsigned char vhs[] PROGMEM = {
-static const unsigned char vhs[] = {
+//static const uint8_t  vhs[] PROGMEM = {
+static const uint8_t  vhs[] = {
 0x11, 0xf0, 0x20, 0xf4,
 0x11, 0x08, 0x20, 0x0c,
 0x11, 0x08, 0x20, 0x0c,
@@ -23,7 +23,9 @@ static const unsigned char vhs[] = {
 0x04, 0x78, 0x20, 0x7c,
 0x00, 0x00, 0x00, 0x00 };
 
-static volatile unsigned char tick;      // Timer tick, indicating when to update the display
+static volatile uint8_t  tick;             // Timer tick, indicating when to update the display
+static volatile uint8_t  button_pressed;   // Did anyone hit the aux button yet?
+
 
 static void banner_callback(void)
 {
@@ -33,12 +35,12 @@ static void banner_callback(void)
 /**
  * Perform an animated wipe left-to-right or right-to-left.
  */
-static void wipe(unsigned char stage)
+static void wipe(uint8_t stage)
 {
-  unsigned char last_tick;
-  unsigned char x, y;
-  unsigned char byte, bit;
-  unsigned char index, mask;
+  uint8_t  last_tick;
+  uint8_t  x, y;
+  uint8_t  byte, bit;
+  uint8_t  index, mask;
   matrix_color_t color;
 
   for (tick = 0, last_tick = 255; tick < MATRIX_WIDTH;)
@@ -47,6 +49,9 @@ static void wipe(unsigned char stage)
       continue;
 
     last_tick = tick;
+
+    if (button_get_aux_state())
+      button_pressed = 1;
 
     if (stage == 2)
      x = MATRIX_WIDTH - 1 - last_tick;  // wipe right to left
@@ -108,11 +113,15 @@ static void wipe(unsigned char stage)
  */
 void banner_run(void)
 {
-  unsigned char timer;
+  uint8_t  timer;
 
   matrix_clear_all();
 
   timer = timer_set_callback(4, TIMER_REPEAT, &banner_callback);
+
+  button_pressed = 0;
+
+  button_debounce_aux(25);
 
   matrix_start_scanning();
 
@@ -121,7 +130,7 @@ void banner_run(void)
     wipe(1);  // left to right, normal colours
     wipe(2);  // right to left, inverted colours
 
-    if (button_get_aux_state())
+    if (button_pressed)
       break;
   }
 

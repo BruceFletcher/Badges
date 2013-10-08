@@ -15,6 +15,13 @@
 #define SCAN_PERIOD  100   // Adjust to minimize flicker, scanning light polution
 
 
+
+const matrix_color_t matrix_color_blank  = { 0, 0 };
+const matrix_color_t matrix_color_red    = { 255, 0 };
+const matrix_color_t matrix_color_green  = { 0, 255 };
+const matrix_color_t matrix_color_yellow = { 255, 255 };
+
+
 matrix_color_t matrix_buffer[MATRIX_WIDTH][MATRIX_HEIGHT];
 
 
@@ -32,9 +39,9 @@ void matrix_init(void)
 
 ISR(TIMER2_OVF_vect)
 {
-  static unsigned char column;
+  static uint8_t column;
 
-  unsigned char row, scan_column;
+  uint8_t row, scan_column;
   matrix_color_t *c;
 
   TCNT2 = 255 - SCAN_PERIOD + TCNT2;   // Reset timer scanning period
@@ -88,19 +95,34 @@ void matrix_clear_all(void)
   memset(&matrix_buffer, 0, sizeof(matrix_buffer));
 }
 
-void matrix_clear_pixel(unsigned char x, unsigned char y)
+void matrix_clear_pixel(uint8_t x, uint8_t y)
 {
-  matrix_buffer[x][y].red   = 0;
-  matrix_buffer[x][y].green = 0;
+  if (x < MATRIX_WIDTH && y < MATRIX_HEIGHT)
+    matrix_buffer[x][y] = matrix_color_blank;
 }
 
-void matrix_set_pixel(unsigned char x, unsigned char y, matrix_color_t color)
+void matrix_set_pixel(uint8_t x, uint8_t y, matrix_color_t color)
 {
-  matrix_buffer[x][y] = color;
+  if (x < MATRIX_WIDTH && y < MATRIX_HEIGHT)
+    matrix_buffer[x][y] = color;
 }
 
-matrix_color_t matrix_get_pixel(unsigned char x, unsigned char y)
+matrix_color_t matrix_get_pixel(uint8_t x, uint8_t y)
 {
-  return matrix_buffer[x][y];
+  if (x < MATRIX_WIDTH && y < MATRIX_HEIGHT)
+    return matrix_buffer[x][y];
+
+  return matrix_color_blank;
+}
+
+uint8_t matrix_is_pixel_blank(uint8_t x, uint8_t y)
+{
+  if (x < MATRIX_WIDTH && y < MATRIX_HEIGHT)
+  {
+    if (matrix_buffer[x][y].red == 0 && matrix_buffer[x][y].green == 0)
+      return 1;
+  }
+
+  return 0;
 }
 
