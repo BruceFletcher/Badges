@@ -19,6 +19,8 @@ static uint8_t ball_y;
 static int8_t ball_dx;           // -1,    1
 static int8_t ball_dy;           // -1, 0, 1
 
+static uint8_t brick_count;
+
 static const matrix_color_t red    = { 255, 0 };
 static const matrix_color_t green  = { 0, 255 };
 static const matrix_color_t yellow = { 255, 255 };
@@ -61,6 +63,8 @@ static void setup_board(void)
       }
     }
   }
+
+  brick_count = MATRIX_WIDTH * 4;
 }
 
 static void move_paddle(void)
@@ -159,7 +163,7 @@ static uint8_t move_ball(void)
   ball_x += ball_dx;
   ball_y += ball_dy;
 
-  matrix_set_pixel(ball_x, ball_y, matrix_color_yellow);
+  matrix_set_pixel(ball_x, ball_y, matrix_color_red);
 
   next_x = ball_x + ball_dx;
   next_y = ball_y + ball_dy;
@@ -190,9 +194,9 @@ static uint8_t move_ball(void)
   }
   else              // check for brick bounce
   {
-    if (!matrix_is_pixel_blank(ball_x, next_y))
+    if (!matrix_is_pixel_blank(next_x, ball_y))
     {
-      matrix_clear_pixel(ball_x, next_y);
+      matrix_clear_pixel(next_x, ball_y);
       cleared_brick = 1;
       reverse_x = 1;
     }
@@ -239,7 +243,6 @@ static void animate_failure(void)
 
 static void play(void)
 {
-  uint8_t brick_count = MATRIX_HEIGHT * 4;
   uint8_t last_tick = tick;
 
   while (brick_count > 0)
@@ -286,7 +289,7 @@ static void endgame(void)
 
 void breakout_run(void)
 {
-  uint8_t timer = timer_set_callback(10, 1, &tick_callback);
+  uint8_t timer = timer_set_callback(15, 1, &tick_callback);
 
   matrix_clear_all();
 
@@ -294,10 +297,10 @@ void breakout_run(void)
 
   ball_count = 3;
 
+  setup_board();
+
   while (ball_count > 0)
   {
-    setup_board();
-
     setup_player();
 
     wait_for_start();
