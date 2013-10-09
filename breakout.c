@@ -151,8 +151,8 @@ static uint8_t move_ball(void)
 {
   uint8_t cleared_brick=0;
   uint8_t next_x, next_y;
-  uint8_t reverse_x = 0;
-  uint8_t reverse_y = 0;
+  uint8_t reversed_x = 0;
+  uint8_t reversed_y = 0;
 
   if (ball_x == 1 && ball_dx == -1)  // check for possible last moment paddle contact
   {
@@ -169,10 +169,18 @@ static uint8_t move_ball(void)
   next_y = ball_y + ball_dy;
 
   if (next_x>=MATRIX_WIDTH)
-    reverse_x = 1;
+  {
+    reversed_x = 1;
+    ball_dx = -1;
+    next_x = ball_x + ball_dx;
+  }
 
   if (next_y>=MATRIX_HEIGHT)
-    reverse_y = 1;
+  {
+    reversed_y = 1;
+    ball_dy *= -1;
+    next_y = ball_y + ball_dy;
+  }
 
   if (ball_x == 1)  // check for paddle bounce
   {
@@ -198,22 +206,22 @@ static uint8_t move_ball(void)
     {
       matrix_clear_pixel(next_x, ball_y);
       cleared_brick = 1;
-      reverse_x = 1;
+      if (!reversed_x)
+        ball_dx *= -1;
     }
     else if (!matrix_is_pixel_blank(next_x, next_y))
     {
       matrix_clear_pixel(next_x, next_y);
       cleared_brick = 1;
-      reverse_x = 1;
-      reverse_y = 1;
+      if (!reversed_y)
+      {
+        ball_dy *= -1;
+
+        if (!reversed_x)
+          ball_dx *= -1;
+      }
     }
   }
-
-  if (reverse_x)
-    ball_dx *= -1;
-
-  if (reverse_y)
-    ball_dy *= -1;
 
   return cleared_brick;
 }
