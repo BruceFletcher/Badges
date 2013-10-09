@@ -270,13 +270,25 @@ static void play(void)
 static void endgame(void)
 {
   uint8_t x, y;
+  const matrix_color_t *color;
+
+  if (brick_count)
+    color = &matrix_color_red;
+  else
+  {
+    color = &matrix_color_green;
+
+    setup_board();
+    move_paddle();
+    matrix_set_pixel(ball_x, ball_y, *color);
+  }
 
   for (x=0; x<MATRIX_WIDTH; ++x)
   {
     for (y=0; y<MATRIX_HEIGHT; ++y)
     {
       if (!matrix_is_pixel_blank(x, y))
-        matrix_set_pixel(x, y, matrix_color_red);
+        matrix_set_pixel(x, y, *color);
     }
   }
 
@@ -299,7 +311,7 @@ void breakout_run(void)
 
   setup_board();
 
-  while (ball_count > 0)
+  while (ball_count > 0 && brick_count > 0)
   {
     setup_player();
 
