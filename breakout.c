@@ -41,9 +41,7 @@ static void setup_board(void)
   {
     for (y=0; y<MATRIX_HEIGHT; ++y)
     {
-      i = (i+1) % 3;
-
-      switch (i)
+      switch (i>>1)
       {
         case 0:
           matrix_set_pixel(x, y, matrix_color_yellow);
@@ -57,10 +55,12 @@ static void setup_board(void)
           matrix_set_pixel(x, y, matrix_color_green);
           break;
       }
+
+      i = (i+1) % 6;
     }
   }
 
-  brick_count = MATRIX_WIDTH * 4;
+  brick_count = (MATRIX_HEIGHT * 4)/2;  // 4 rows of 2 pixel wide bricks
 }
 
 static void move_paddle(void)
@@ -147,33 +147,24 @@ static uint8_t move_ball(void)
 {
   uint8_t cleared_brick=0;
   uint8_t next_x, next_y;
-  uint8_t reversed_x = 0;
-  uint8_t reversed_y = 0;
-
-  if (ball_x == 1 && ball_dx == -1)  // check for possible last moment paddle contact
-  {
-  }
+  uint8_t bounced_x = 0;
+  uint8_t bounced_y = 0;
 
   matrix_clear_pixel(ball_x, ball_y);
-
-  ball_x += ball_dx;
-  ball_y += ball_dy;
-
-  matrix_set_pixel(ball_x, ball_y, matrix_color_red);
 
   next_x = ball_x + ball_dx;
   next_y = ball_y + ball_dy;
 
   if (next_x>=MATRIX_WIDTH)
   {
-    reversed_x = 1;
+    bounced_x = 1;
     ball_dx = -1;
     next_x = ball_x + ball_dx;
   }
 
   if (next_y>=MATRIX_HEIGHT)
   {
-    reversed_y = 1;
+    bounced_y = 1;
     ball_dy *= -1;
     next_y = ball_y + ball_dy;
   }
@@ -188,12 +179,20 @@ static uint8_t move_ball(void)
     else if (ball_y == paddle-1)
     {
       ball_dx = 1;
-      ball_dy = -1;
+
+      if (ball_y == 0)
+        ball_dy = 1;
+      else
+        ball_dy = -1;
     }
     else if (ball_y == paddle+1)
     {
       ball_dx = 1;
-      ball_dy = 1;
+
+      if (ball_y == MATRIX_HEIGHT)
+        ball_dy = -1;
+      else
+        ball_dy = 1;
     }
   }
   else              // check for brick bounce
@@ -201,23 +200,40 @@ static uint8_t move_ball(void)
     if (!matrix_is_pixel_blank(next_x, ball_y))
     {
       matrix_clear_pixel(next_x, ball_y);
+      if (ball_y & 1)
+        matrix_clear_pixel(next_x, ball_y-1);
+      else
+        matrix_clear_pixel(next_x, ball_y+1);
+
       cleared_brick = 1;
-      if (!reversed_x)
+
+      if (!bounced_x)
         ball_dx *= -1;
     }
     else if (!matrix_is_pixel_blank(next_x, next_y))
     {
       matrix_clear_pixel(next_x, next_y);
+      if (next_y & 1)
+        matrix_clear_pixel(next_x, next_y-1);
+      else
+        matrix_clear_pixel(next_x, next_y+1);
+
       cleared_brick = 1;
-      if (!reversed_y)
+
+      if (!bounced_y)
       {
         ball_dy *= -1;
 
-        if (!reversed_x)
+        if (!bounced_x)
           ball_dx *= -1;
       }
     }
   }
+
+  ball_x += ball_dx;
+  ball_y += ball_dy;
+
+  matrix_set_pixel(ball_x, ball_y, matrix_color_red);
 
   return cleared_brick;
 }
