@@ -21,10 +21,6 @@ static int8_t ball_dy;           // -1, 0, 1
 
 static uint8_t brick_count;
 
-static const matrix_color_t red    = { 255, 0 };
-static const matrix_color_t green  = { 0, 255 };
-static const matrix_color_t yellow = { 255, 255 };
-
 static volatile uint8_t tick;
 
 
@@ -50,15 +46,15 @@ static void setup_board(void)
       switch (i)
       {
         case 0:
-          matrix_set_pixel(x, y, yellow);
+          matrix_set_pixel(x, y, matrix_color_yellow);
           break;
 
         case 1:
-          matrix_set_pixel(x, y, red);
+          matrix_set_pixel(x, y, matrix_color_red);
           break;
 
         case 2:
-          matrix_set_pixel(x, y, green);
+          matrix_set_pixel(x, y, matrix_color_green);
           break;
       }
     }
