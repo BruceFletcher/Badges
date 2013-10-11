@@ -12,8 +12,7 @@
 
 #define ROW_BYTES ((MATRIX_WIDTH/8)*2)  // /8 because bitmask, *2 because red & green
 
-//static const uint8_t  vhs[] PROGMEM = {
-static const uint8_t  vhs[] = {
+static const uint8_t  vhs[] PROGMEM = {
 0x11, 0xf0, 0x20, 0xf4,
 0x11, 0x08, 0x20, 0x0c,
 0x11, 0x08, 0x20, 0x0c,
@@ -73,13 +72,11 @@ static void wipe(uint8_t stage)
       }
       else
       {
-//        color.red = (pgm_read_byte(vhs[index]) & mask) ? 255 : 0;
-        color.red = (vhs[index] & mask) ? 255 : 0;
+        color.red = (pgm_read_byte(&vhs[index]) & mask) ? 255 : 0;
 
         index += ROW_BYTES / 2;  // move from red to green data
 
-//        color.green = (pgm_read_byte(vhs[index]) & mask) ? 255 : 0;
-        color.green = (vhs[index] & mask) ? 255 : 0;
+        color.green = (pgm_read_byte(&vhs[index]) & mask) ? 255 : 0;
 
         if (stage == 2)
         {
