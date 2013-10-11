@@ -176,7 +176,7 @@ static uint8_t move_ball(void)
       ball_dx = 1;
       ball_dy = 0;
     }
-    else if (ball_y == paddle-1)
+    else if (ball_y == paddle-1 || next_y == paddle-1)
     {
       ball_dx = 1;
 
@@ -185,7 +185,7 @@ static uint8_t move_ball(void)
       else
         ball_dy = -1;
     }
-    else if (ball_y == paddle+1)
+    else if (ball_y == paddle+1 || next_y == paddle+1)
     {
       ball_dx = 1;
 
@@ -230,8 +230,11 @@ static uint8_t move_ball(void)
     }
   }
 
-  ball_x += ball_dx;
-  ball_y += ball_dy;
+  if (brick_count - cleared_brick > 0)
+  {
+    ball_x += ball_dx;
+    ball_y += ball_dy;
+  }
 
   matrix_set_pixel(ball_x, ball_y, matrix_color_red);
 
@@ -300,7 +303,6 @@ static void endgame(void)
 
     setup_board();
     move_paddle();
-    matrix_set_pixel(ball_x, ball_y, *color);
   }
 
   for (x=0; x<MATRIX_WIDTH; ++x)
@@ -311,6 +313,8 @@ static void endgame(void)
         matrix_set_pixel(x, y, *color);
     }
   }
+
+  matrix_set_pixel(ball_x, ball_y, matrix_color_yellow);
 
   while (1)
   {
