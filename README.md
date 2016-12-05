@@ -5,7 +5,7 @@ Maybe we do need them
 ---------------------
 
 This is a straight C firmware example for the
-[VHS Fifth Anniversary Badge](http://vancouver.hackspace.ca/wp/2013/09/30/vhs-led-matrix-badge/).
+[VHS Fifth Anniversary Badge](http://vanhack.ca/wp/2013/09/30/vhs-led-matrix-badge/).
 
 From a code-reuse perspective, the main features are interrupt-driven UART and timer interfaces.
 
